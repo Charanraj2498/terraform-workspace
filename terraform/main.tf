@@ -5,7 +5,7 @@ locals {
 
 # Create an S3 Bucket with a unique name
 resource "aws_s3_bucket" "bucket" {
-  bucket = "${local.workspace_name}-ck-121"
+  bucket = "${local.workspace_name}-ck-123-123"
   acl    = "private"
 }
 
