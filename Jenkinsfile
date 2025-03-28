@@ -20,7 +20,7 @@ pipeline {
         }
         stage('Clone Repository') {
             steps {
-                git 'https://github.com/kevalohith/terraform-workspace.git'
+                git 'https://github.com/Charanraj2498/terraform-workspace.git'
             }
         }
         stage('Terraform Init & Apply') {
