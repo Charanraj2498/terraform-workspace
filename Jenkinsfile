@@ -1,54 +1,50 @@
 pipeline {
     agent any
-    parameters {
-        string(name: 'ENVIRONMENT', defaultValue: 'dev', description: 'Enter workspace (dev, staging, prod)')
-    }
     environment {
-        AWS_PROFILE = 'default'
+        AWS_ACCESS_KEY_ID = credentials('aws-access-key')  
+        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key')
     }
     stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', credentialsId: 'your-credentials-id', url: 'https://github.com/Charanraj2498/terraform-workspace.git'
+            }
+        }
+
         stage('Setup AWS Credentials') {
             steps {
                 sh '''
-                mkdir -p ~/.aws
-                echo "[default]" > ~/.aws/credentials
-                echo "aws_access_key_id = $AWS_ACCESS_KEY_ID" >> ~/.aws/credentials
-                echo "aws_secret_access_key = $(global)	AWS_SECRET_ACCESS_KEY" >> ~/.aws/credentials   
-                chmod 600 ~/.aws/credentials
+                mkdir -p /home/ubuntu/.aws
+                echo "[default]" > /home/ubuntu/.aws/credentials
+                echo "aws_access_key_id = $AWS_ACCESS_KEY_ID" >> /home/ubuntu/.aws/credentials
+                echo "aws_secret_access_key = $AWS_SECRET_ACCESS_KEY" >> /home/ubuntu/.aws/credentials
+                chmod 600 /home/ubuntu/.aws/credentials
                 '''
             }
         }
-        stage('Clone Repository') {
-            steps {
-                git 'https://github.com/Charanraj2498/terraform-workspace.git'
-            }
-        }
+        
         stage('Terraform Init & Apply') {
             steps {
-                dir('terraform') {
-                    sh '''
-                    terraform init
-                    terraform workspace select $ENVIRONMENT || terraform workspace new $ENVIRONMENT
-                    terraform apply -auto-approve
-                    '''
-                }
+                sh '''
+                terraform init
+                terraform apply -auto-approve
+                '''
             }
         }
+
         stage('Fetch Public IP & Create Inventory') {
             steps {
-                script {
-                    def public_ip = sh(script: "terraform output -json | jq -r '.public_ip.value[0]'", returnStdout: true).trim()
-                    writeFile file: 'ansible/inventory', text: "[webserver]\n${public_ip} ansible_user=ubuntu"
-                }
+                sh '''
+                echo "[ec2-instance]" > inventory
+                terraform output public_ip >> inventory
+                '''
             }
         }
+
         stage('Run Ansible Playbook') {
             steps {
-                sh '''
-                ansible-playbook -i ansible/inventory ansible/playbook.yml
-                '''
+                sh 'ansible-playbook -i inventory playbook.yml'
             }
         }
     }
 }
-
