@@ -26,16 +26,17 @@ pipeline {
             }
         }
 
-        stage('Terraform Init & Apply') {
-            steps {
-                dir('terraform') {
-                    sh '''
-                    terraform init
-                    terraform apply -auto-approve
-                    '''
-                }
-            }
-        }
+                  stage('Terraform Init & Apply') {
+                    steps {
+                       dir('terraform') {
+                          sh '''
+                          terraform init
+                          terraform apply -auto-approve -var="environment=dev"
+                          '''
+                     }
+                 }
+             }
+
 
         stage('Fetch Public IP & Create Inventory') {
             steps {
