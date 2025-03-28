@@ -11,19 +11,7 @@ pipeline {
             }
         }
 
-        stage('Setup AWS Credentials') {
-            steps {
-                sh '''
-                mkdir -p /home/ubuntu/.aws
-                echo "[default]" > /home/ubuntu/.aws/credentials
-                echo "aws_access_key_id = $AWS_ACCESS_KEY_ID" >> /home/ubuntu/.aws/credentials
-                echo "aws_secret_access_key = $AWS_SECRET_ACCESS_KEY" >> /home/ubuntu/.aws/credentials
-                chmod 600 /home/ubuntu/.aws/credentials
-                '''
-            }
-        }
-        
-        stage('Terraform Init & Apply') {
+       stage('Terraform Init & Apply') {
             steps {
                 sh '''
                 terraform init
