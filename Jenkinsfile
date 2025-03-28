@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent 'terraform'
 
     environment {
         AWS_PROFILE = 'default'
